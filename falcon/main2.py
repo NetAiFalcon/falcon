@@ -41,7 +41,7 @@ def demo(model, image_path, x, y):
 
     # save image with pred and error
     artifact = image_grid([rgb, depth_gt_col, depth_pred_col, depth_error_col], 2, 2)
-    Image.fromarray(artifact).save("../UniDepth/assets/demo/output.png")
+    Image.fromarray(artifact).save("assets/output.png")
 
     print("Available predictions:", list(predictions.keys()))
     print(f"ARel: {depth_arel[depth_gt_resized > 0].mean() * 100:.2f}%")

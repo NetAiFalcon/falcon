@@ -10,14 +10,14 @@ def resize_image(image, target_size):
     return np.array(Image.fromarray(image).resize(target_size[::-1], Image.BILINEAR))
 
 def demo(model):
-    rgb = np.array(Image.open("assets/demo/10m_2.jpg"))
-    depth_gt = np.array(Image.open("assets/demo/depth.png")).astype(float) / 1000.0
+    rgb = np.array(Image.open("assets/10m_2.jpg"))
+    depth_gt = np.array(Image.open("../UniDepth/assets/demo/depth.png")).astype(float) / 1000.0
 
     # Resize depth_gt to match the RGB image size
     depth_gt_resized = resize_image(depth_gt, rgb.shape[:2])
 
     rgb_torch = torch.from_numpy(rgb).permute(2, 0, 1).unsqueeze(0).float() / 255.0
-    intrinsics_torch = torch.from_numpy(np.load("assets/demo/intrinsics.npy"))
+    intrinsics_torch = torch.from_numpy(np.load("../UniDepth/assets/demo/intrinsics.npy"))
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     rgb_torch = rgb_torch.to(device)
@@ -40,7 +40,7 @@ def demo(model):
 
     # save image with pred and error
     artifact = image_grid([rgb, depth_gt_col, depth_pred_col, depth_error_col], 2, 2)
-    Image.fromarray(artifact).save("assets/demo/output.png")
+    Image.fromarray(artifact).save("../UniDepth/assets/demo/output.png")
 
     print("Available predictions:", list(predictions.keys()))
     print(f"ARel: {depth_arel[depth_gt_resized > 0].mean() * 100:.2f}%")
