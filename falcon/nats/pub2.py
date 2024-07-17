@@ -75,7 +75,7 @@ def on_new_sample(sink, nc):
                 }
                 message = json.dumps(data)
                 
-                asyncio.run_coroutine_threadsafe(nc.publish("camera.frames", message.encode('utf-8')), asyncio.get_event_loop())
+                asyncio.run_coroutine_threadsafe(nc.publish("Falcon.ternal.Group.A", message.encode('utf-8')), asyncio.get_event_loop())
     
     buf.unmap(mapinfo)
     return Gst.FlowReturn.OK
