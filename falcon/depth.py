@@ -49,6 +49,7 @@ def demo(model, image_path, x, y):
     # 특정 좌표(x, y)의 깊이 출력
     depth_at_point = depth_pred[y, x]
     print(f"Depth at ({x}, {y}): {depth_at_point:.4f} meters")
+    return depth_at_point
 
 
 if __name__ == "__main__":

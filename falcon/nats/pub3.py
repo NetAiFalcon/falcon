@@ -1,8 +1,3 @@
-# 1. 사진 찍기
-# 2. YOLO 사람 인식 + 바운딩 박스의 중간 좌표 찾기
-# 3. Depth Estimation으로 해당 좌표 길이 추산
-# 4. UWB 좌표 가지고 특정하기
-
 import asyncio
 import cv2
 import nats
@@ -12,10 +7,6 @@ import json
 import base64
 import time
 import subprocess
-from gi.repository import Gst, GLib
-
-# GStreamer 초기화
-Gst.init(None)
 
 # YOLO 모델 로드
 model = torch.hub.load('ultralytics/yolov5', 'yolov5s')
@@ -24,40 +15,28 @@ model = torch.hub.load('ultralytics/yolov5', 'yolov5s')
 async def connect_to_nats():
     return await nats.connect("nats://210.125.85.31:31773")
 
-# GStreamer를 사용하여 카메라 스트림 캡처 및 NATS 전송
+# Depth 값을 가져오는 함수
+def get_depth_value(frame, cx, cy):
+    # 임시 파일에 프레임을 저장
+    temp_filename = 'temp_frame.jpg'
+    cv2.imwrite(temp_filename, frame)
+    
+    # unidepth.py 스크립트를 호출
+    result = subprocess.run(['python3', '../depth.py', '--image', temp_filename, '--x', str(cx), '--y', str(cy)], capture_output=True, text=True)
+    
+    # 출력된 깊이 값을 파싱
+    depth = float(result.stdout.strip())
+    return depth
+
+# 카메라 스트림 캡처 및 NATS 전송
 async def capture_and_send_video():
     nc = await connect_to_nats()
-
-    # GStreamer 파이프라인 구성
-    pipeline = Gst.parse_launch(
-        "v4l2src ! videoconvert ! videoscale ! video/x-raw,width=1280,height=720,format=BGR ! appsink name=sink"
-    )
+    cap = cv2.VideoCapture(0)
     
-    sink = pipeline.get_by_name("sink")
-    sink.set_property("emit-signals", True)
-    sink.connect("new-sample", on_new_sample, nc)
-
-    # 파이프라인 시작
-    pipeline.set_state(Gst.State.PLAYING)
-    
-    # GStreamer 메인 루프 실행
-    loop = GLib.MainLoop()
-    try:
-        loop.run()
-    except KeyboardInterrupt:
-        pass
-    finally:
-        pipeline.set_state(Gst.State.NULL)
-        await nc.close()
-
-def on_new_sample(sink, nc):
-    sample = sink.emit("pull-sample")
-    buf = sample.get_buffer()
-    result, mapinfo = buf.map(Gst.MapFlags.READ)
-    
-    if result:
-        frame_data = np.frombuffer(mapinfo.data, np.uint8)
-        frame = cv2.imdecode(frame_data, cv2.IMREAD_COLOR)
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            break
         
         # YOLO 감지
         results = model(frame)
@@ -74,7 +53,7 @@ def on_new_sample(sink, nc):
                     cy = (ymin + ymax) / 2
                     centers.append((cx.item(), cy.item()))
                     
-                    # unidepth.py 스크립트를 호출하여 깊이 값 계산
+                    # 깊이 값 계산
                     depth = get_depth_value(frame, cx, cy)
                     depths.append(depth)
             
@@ -95,24 +74,13 @@ def on_new_sample(sink, nc):
                 }
                 message = json.dumps(data)
                 
-                asyncio.run_coroutine_threadsafe(nc.publish("Falcon.ternal.Group.A", message.encode('utf-8')), asyncio.get_event_loop())
-    
-    buf.unmap(mapinfo)
-    return Gst.FlowReturn.OK
+                await nc.publish("Falcon.ternal.Group.A", message.encode('utf-8'))
+        
+        await asyncio.sleep(0.1)  # 100ms 딜레이
 
-def get_depth_value(frame, cx, cy):
-    # 임시 파일에 프레임을 저장
-    temp_filename = 'temp_frame.jpg'
-    cv2.imwrite(temp_filename, frame)
-    
-    # unidepth.py 스크립트를 호출
-    result = subprocess.run(['python3', 'unidepth.py', '--image', temp_filename, '--x', str(cx), '--y', str(cy)], capture_output=True, text=True)
-    
-    # 출력된 깊이 값을 파싱
-    depth = float(result.stdout.strip())
-    return depth
+    cap.release()
+    await nc.close()
 
 # 메인 함수
 if __name__ == "__main__":
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(capture_and_send_video())
+    asyncio.run(capture_and_send_video())
