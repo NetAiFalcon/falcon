@@ -8,8 +8,19 @@ import base64
 import time
 import subprocess
 
+# time check
+import math
+import time
+
+start = time.time()
+math.factorial(100000)
+
 # YOLO 모델 로드
 model = torch.hub.load('ultralytics/yolov5', 'yolov5s')
+
+# time check
+end_point = time.time()
+print(f"YOLO model load time {end_point - start:.5f} sec")
 
 # NATS 서버에 연결
 async def connect_to_nats():
@@ -25,6 +36,9 @@ def get_depth_value(frame, cx, cy):
     result = subprocess.run(['python3', '../depth.py', '--image', temp_filename, '--x', str(cx), '--y', str(cy)], capture_output=True, text=True)
     
     # 출력된 깊이 값을 파싱
+    print(result)
+    print(result.stdout.strip())
+    print(type(result.stdout.strip()))
     depth = float(result.stdout.strip())
     return depth
 
@@ -39,6 +53,7 @@ async def capture_and_send_video():
             break
         
         # YOLO 감지
+        end_point1 = time.time()
         results = model(frame)
         if len(results.xyxy[0]) > 0:  # 사람이 감지된 경우
             detected = False
@@ -52,9 +67,13 @@ async def capture_and_send_video():
                     cx = (xmin + xmax) / 2
                     cy = (ymin + ymax) / 2
                     centers.append((cx.item(), cy.item()))
-                    
-                    # 깊이 값 계산
-                    depth = get_depth_value(frame, cx, cy)
+
+                    # time check
+                    end_point2 = time.time()
+                    print(f"YOLO model run time {end_point2 - end_point1:.5f} sec")
+
+                    # 깊이 값 계산  
+                    depth = get_depth_value(frame, int(cx.item()), int(cy.item()))
                     depths.append(depth)
             
             if detected:
