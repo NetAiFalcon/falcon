@@ -49,7 +49,8 @@ def demo(model, image_path, x, y):
     # 특정 좌표(x, y)의 깊이 출력
     depth_at_point = depth_pred[y, x]
     #print(f"Depth at ({x}, {y}): {depth_at_point:.4f} meters")
-    print(f"Depth at ({x}, {y}): {depth_at_point:.4f} meters")
+    # print(f"Depth at ({x}, {y}): {depth_at_point:.4f} meters")
+    print(depth_at_point)
     return depth_at_point
 
 
@@ -73,12 +74,12 @@ if __name__ == "__main__":
 
     # time check
     end_point = time.time()
-    print(f"depth model lading time {end_point - start:.5f} sec")
+    # print(f"depth model lading time {end_point - start:.5f} sec")
 
     demo(model, args.image, args.x, args.y)
 
     # time check
     end_point2 = time.time()
-    print(f"depth model predict time {end_point2 - end_point:.5f} sec")
+    # print(f"depth model predict time {end_point2 - end_point:.5f} sec")
 
 # python3 unidepth.py --image {path} --x 400 --y
