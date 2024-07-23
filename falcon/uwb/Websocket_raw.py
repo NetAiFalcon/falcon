@@ -77,6 +77,11 @@ class SewioWebSocketClient_v2:
 
         print(f"posX : {posX}, posY : {posY}") ###
 
+        f = open("temp.txt", 'w')
+        data = f"posX : {posX}, posY : {posY}"
+        f.write(data)
+        f.close()
+
         self.data_callback(tag_id, posX, posY, timestamp, anchor_info)
 
     def on_error(self, ws, error):
@@ -99,6 +104,7 @@ class SewioWebSocketClient_v2:
 
 
     def run_forever(self):
+        print("run_forever")
         while self.running:
             try:
                 self.ws = websocket.WebSocketApp(self.url,
@@ -112,7 +118,6 @@ class SewioWebSocketClient_v2:
             if self.running:
                 print("Attempting to reconnect in {} seconds...".format(self.reconnect_delay))
                 time.sleep(self.reconnect_delay)  # 재연결 전 딜레이
-
 
 
 """
