@@ -1,1 +1,4 @@
 falcon/nats/*.jpg
+
+falcon/uwb/*.json
+falcon/uwb/__pycache__/*
