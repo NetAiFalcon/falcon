@@ -2,3 +2,4 @@ falcon/nats/temp_frame.jpg
 
 falcon/uwb/*.json
 falcon/uwb/__pycache__/*
+falcon/uwb/*.txt
