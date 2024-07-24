@@ -1,4 +1,4 @@
-falcon/nats/*.jpg
+falcon/nats/temp_frame.jpg
 
 falcon/uwb/*.json
 falcon/uwb/__pycache__/*

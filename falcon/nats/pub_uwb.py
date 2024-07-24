@@ -21,6 +21,7 @@ import argparse
 from unidepth.models import UniDepthV1, UniDepthV2
 from unidepth.utils import colorize, image_grid
 
+import datetime
 
 
 start = time.time()
@@ -69,7 +70,7 @@ def get_depth_value(frame, cx, cy):
 
     # 특정 좌표(x, y)의 깊이 출력
     depth_at_point = depth_pred[cy, cx] - 1
-    print(f"Depth at ({cx}, {cy}): {depth_at_point:.4f} meters")
+    # print(f"Depth at ({cx}, {cy}): {depth_at_point:.4f} meters")
     return float(depth_at_point)
 
 # 카메라 스트림 캡처 및 NATS 전송
@@ -85,7 +86,8 @@ async def capture_and_send_video():
         if not ret:
             break
         
-        uwb = requests.get('http://127.0.0.1:8000/items/info')
+        time_cap = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+        uwb = str(requests.get('http://127.0.0.1:8000/items/info').text)[1:-1].split("_")
 
         # YOLO 감지
         results = model(frame)
@@ -102,7 +104,7 @@ async def capture_and_send_video():
                     cy = (ymin + ymax) / 2
                     centers.append((cx.item(), cy.item()))
 
-                    print(uwb.text) # uwb text
+                    # print(uwb.text) # uwb text
 
                     # 깊이 값 계산  
                     depth = get_depth_value(frame, int(cx.item()), int(cy.item()))
@@ -120,14 +122,30 @@ async def capture_and_send_video():
                 data = {
                     "filename": filename,
                     "image": base64.b64encode(buffer).decode('utf-8'),
-                    "centers": centers,
-                    "depths": depths
+                    "tag_id": uwb[4],  #position_17.78_-21.76_tagid_15
+                    "centers": centers, 
+                    "depths": depths,
+                    "position_x": uwb[1],
+                    "position_y": uwb[2],
+                    "time" : time_cap
                 }
+
+                data_print = {
+                    "filename": filename,
+                    "image": "r4lwEXtvKB95SM1w5Ug9K9I+I8",
+                    "tag_id": uwb[4],  #position_17.78_-21.76_tagid_15
+                    "centers": centers, 
+                    "depths": depths,
+                    "position_x": uwb[1],
+                    "position_y": uwb[2],
+                    "time" : time_cap
+                }
+                print(data_print)
                 message = json.dumps(data)
                 
                 await nc.publish("Falcon.ternal.Group.A", message.encode('utf-8'))
         
-        await asyncio.sleep(0.1)  # 100ms 딜레이
+        await asyncio.sleep(0.2)  # 200ms 딜레이 안하면 초당 4장, 100ms 딜레이는 초당 2장
 
         # time check
         # end_point_capture_done = time.time()

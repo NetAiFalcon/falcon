@@ -75,10 +75,10 @@ class SewioWebSocketClient_v2:
         else:
             anchor_info = json.dumps({})
 
-        print(f"posX : {posX}, posY : {posY}") ###
-
+        #print(f"posX : {posX}, posY : {posY}") ###
+        # 좌표를 담는 코드
         f = open("temp.txt", 'w')
-        data = f"posX : {posX}, posY : {posY}"
+        data = f"position_{posX}_{posY}_tagid_{tag_id}"
         f.write(data)
         f.close()
 

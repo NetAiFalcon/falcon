@@ -1,1 +1,1 @@
-posX : 22.41, posY : -23.62
+position_17.67_-21.83_tagid_15

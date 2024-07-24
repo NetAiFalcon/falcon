@@ -16,3 +16,4 @@ def read_item():
         line = f.readline()
     return line
 
+# uwb의 좌표를 보내는 api server
