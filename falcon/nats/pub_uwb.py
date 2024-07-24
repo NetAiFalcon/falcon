@@ -74,7 +74,7 @@ def get_depth_value(frame, cx, cy):
     return float(depth_at_point)
 
 # 카메라 스트림 캡처 및 NATS 전송
-async def capture_and_send_video():
+async def capture_and_send_video(tag_id, subject):
     nc = await connect_to_nats()
     cap = cv2.VideoCapture(0)
     
@@ -87,7 +87,7 @@ async def capture_and_send_video():
             break
         
         time_cap = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-        uwb = str(requests.get('http://127.0.0.1:8000/items/info').text)[1:-1].split("_")
+        uwb = str(requests.get('http://127.0.0.1:8000/uwb/'+str(tag_id)).text)[1:-1].split("_")
 
         # YOLO 감지
         results = model(frame)
@@ -143,7 +143,7 @@ async def capture_and_send_video():
                 print(data_print)
                 message = json.dumps(data)
                 
-                await nc.publish("Falcon.ternal.Group.A", message.encode('utf-8'))
+                await nc.publish(subject, message.encode('utf-8'))
         
         await asyncio.sleep(0.2)  # 200ms 딜레이 안하면 초당 4장, 100ms 딜레이는 초당 2장
 
@@ -156,4 +156,8 @@ async def capture_and_send_video():
 
 # 메인 함수
 if __name__ == "__main__":
-    asyncio.run(capture_and_send_video())
+    parser = argparse.ArgumentParser(description='falcon Demo')
+    parser.add_argument('--tag_id', type=int, required=True, help='to the input tag_id')
+    parser.add_argument('--subject', type=str, required=False, default='Falcon.ternal.Group.A' ,help='to the input tag_id')
+    args = parser.parse_args()
+    asyncio.run(capture_and_send_video(args.tag_id, args.subject))
