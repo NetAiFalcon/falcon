@@ -77,7 +77,8 @@ class SewioWebSocketClient_v2:
 
         #print(f"posX : {posX}, posY : {posY}") ###
         # 좌표를 담는 코드
-        f = open("temp.txt", 'w')
+        temp_filename = "temp" + str(tag_id)
+        f = open(temp_filename + ".txt", 'w')
         data = f"position_{posX}_{posY}_tagid_{tag_id}"
         f.write(data)
         f.close()

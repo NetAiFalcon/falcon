@@ -12,7 +12,7 @@ def read_root():
 
 @app.get("/items/info")
 def read_item():
-    with open("temp.txt", 'r') as f:
+    with open("temp15.txt", 'r') as f:
         line = f.readline()
     return line
 
