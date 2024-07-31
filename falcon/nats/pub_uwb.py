@@ -113,12 +113,13 @@ async def capture_and_send_video(tag_id, subject):
             
             
             if detected:
+
+                # 간단 보정
                 if centers[0][0] < 170:
-                    print("in")
                     x_position = float(x_position) - 1
                 elif centers[0][0] > 470:
-                    print("in2")
                     x_position = float(x_position) + 1
+
                 # JPEG로 인코딩하여 손실 압축 적용 (품질 80%)
                 encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 80]
                 _, buffer = cv2.imencode('.jpg', frame, encode_param)
@@ -130,9 +131,7 @@ async def capture_and_send_video(tag_id, subject):
                     "filename": filename,
                     "image": base64.b64encode(buffer).decode('utf-8'),
                     "tag_id": uwb[4],  #position_17.78_-21.76_tagid_15
-                    "centers": centers, 
-                    "depths": depths,
-                    "position_x": uwb[1],
+                    "position_x": x_position,
                     "position_y": uwb[2],
                     "time" : time_cap
                 }
@@ -141,8 +140,6 @@ async def capture_and_send_video(tag_id, subject):
                     "filename": filename,
                     "image": "r4lwEXtvKB95SM1w5Ug9K9I+I8",
                     "tag_id": uwb[4],  #position_17.78_-21.76_tagid_15
-                    "centers": centers, 
-                    "depths": depths,
                     "position_x": x_position,
                     "position_y": uwb[2],
                     "time" : time_cap
