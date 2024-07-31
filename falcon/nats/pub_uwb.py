@@ -87,7 +87,7 @@ async def capture_and_send_video(tag_id, subject):
             break
         
         time_cap = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-        uwb = str(requests.get('http://127.0.0.1:8000/uwb/'+str(tag_id)).text)[1:-1].split("_")
+        uwb = str(requests.get('http://210.125.85.31:31008/uwb/'+str(tag_id)).text)[1:-1].split("_")
 
         # YOLO 감지
         results = model(frame)
@@ -95,6 +95,7 @@ async def capture_and_send_video(tag_id, subject):
             detected = False
             centers = []
             depths = []
+            x_position = uwb[1]
             for result in results.xyxy[0]:
                 if int(result[5]) == 0:  # 0번 클래스가 'person'인 경우
                     detected = True
@@ -103,21 +104,27 @@ async def capture_and_send_video(tag_id, subject):
                     cx = (xmin + xmax) / 2
                     cy = (ymin + ymax) / 2
                     centers.append((cx.item(), cy.item()))
-
                     # print(uwb.text) # uwb text
 
                     # 깊이 값 계산  
                     depth = get_depth_value(frame, int(cx.item()), int(cy.item()))
                     depths.append(depth)
             
+            
+            
             if detected:
+                if centers[0][0] < 170:
+                    print("in")
+                    x_position = float(x_position) - 1
+                elif centers[0][0] > 470:
+                    print("in2")
+                    x_position = float(x_position) + 1
                 # JPEG로 인코딩하여 손실 압축 적용 (품질 80%)
                 encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 80]
                 _, buffer = cv2.imencode('.jpg', frame, encode_param)
                 
                 # 파일명 생성
                 filename = f"frame_{int(time.time())}.jpg"
-                
                 # JSON 데이터 생성
                 data = {
                     "filename": filename,
@@ -136,7 +143,7 @@ async def capture_and_send_video(tag_id, subject):
                     "tag_id": uwb[4],  #position_17.78_-21.76_tagid_15
                     "centers": centers, 
                     "depths": depths,
-                    "position_x": uwb[1],
+                    "position_x": x_position,
                     "position_y": uwb[2],
                     "time" : time_cap
                 }
