@@ -3,6 +3,38 @@ pub code.
 python3 main.py --tag_id {int}
 
 
+## Dockerfile
+
+한 번에 도커파일을 빌드할 경우 1000초 이상의 시간이 소요되기 때문에
+
+falcon-base
+
+falcon-pub-base
+
+falcon-pub
+
+로 나누어 빌드함.
+
+![poster](../falcon-dockerfile.png)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # Unidepth
 
 ## Contributions
