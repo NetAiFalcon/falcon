@@ -1,0 +1,16 @@
+FROM falcon-base-cam:latest
+
+# Install dependencies, including graphics libraries
+# RUN apt-get update
+
+# RUN apt-get install v4l-utils -y
+
+# RUN apt-get install -y libgl1-mesa-glx
+
+COPY . .
+
+RUN pip install -vvv -e . --extra-index-url https://download.pytorch.org/whl/cu118
+
+RUN pip install nats-py
+
+CMD ["python3", "main.py", "--tag_id 11"] 
