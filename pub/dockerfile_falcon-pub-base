@@ -1,0 +1,8 @@
+FROM falcon-base:latest
+
+RUN pip install botocore==1.34.54
+RUN pip install xformers==0.0.24
+
+RUN pip install h5py>=3.10.0 && pip install black && pip install blosc2 && pip install fonttools && pip install kiwisolver && pip install matplotlib && pip install pandas && pip install scipy && pip install tables
+
+RUN pip install -e .
