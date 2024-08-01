@@ -15,6 +15,8 @@ falcon-pub
 
 로 나누어 빌드함.
 
+결과적으로 기존 1000s 이상 걸리는 빌드를 600s -> 400s ->  < 3s 으로 단축함.
+
 ![poster](../falcon-dockerfile.png)
 
 
