@@ -1,4 +1,4 @@
-FROM pytorch/pytorch:2.2.0-cuda12.1-cudnn8-runtime
+FROM docker.io/pytorch/pytorch:2.2.0-cuda12.1-cudnn8-runtime
 
 RUN apt-get update
 
@@ -17,3 +17,6 @@ RUN pip install torchvision==0.17.0
 RUN pip install torchaudio==2.2.0
 
 COPY . .
+
+
+# 최초 이미지 빌드

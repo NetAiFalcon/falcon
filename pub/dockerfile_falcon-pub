@@ -1,0 +1,10 @@
+FROM localhost/falcon-base-torch-12.1-pub-base:latest
+
+RUN pip install -e .
+
+COPY main.py .
+
+CMD ["python3", "main.py", "--tag_id", "16"] 
+
+
+# 최종 이미지 빌드

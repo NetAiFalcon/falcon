@@ -1,7 +1,0 @@
-FROM falcon-pub-base:latest
-
-RUN pip install -e .
-
-COPY main.py .
-
-CMD ["python3", "main.py", "--tag_id", "11"] 
