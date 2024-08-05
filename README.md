@@ -1,12 +1,16 @@
 ## Infra.
 
-![poster](../infra_now.png)
+![poster](./infra_now.png)
 
 <details>
 <summary>Previous</summary>
 <div markdown="1">
 
-![poster](../infra_previous.png)
+![poster](./infra_previous.png)
+
+초기 진행에 관한 자료 링크
+
+[falcon에 관한 초기 아이디어](https://github.com/NetAiFalcon/falcon/tree/nats/initial_meterial)
 
 </div>
 </details>
@@ -33,7 +37,7 @@ falcon-pub
 
 결과적으로 기존 1000s 이상 걸리는 빌드를 600s -> 400s -> < 3s 으로 단축함.
 
-![poster](../falcon-dockerfile.png)
+![poster](./falcon-dockerfile.png)
 
 ### Dockerfile build
 
