@@ -1,4 +1,4 @@
-FROM localhost/falcon-base-torch-12.1-pub-base:latest
+FROM localhost/falcon-pub-demo-base:latest
 
 RUN pip install -e .
 
