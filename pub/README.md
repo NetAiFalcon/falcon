@@ -2,7 +2,6 @@ pub code.
 
 python3 main.py --tag_id {int}
 
-
 ## Dockerfile
 
 한 번에 도커파일을 빌드할 경우 1000초 이상의 시간이 소요되기 때문에
@@ -15,27 +14,17 @@ falcon-pub
 
 로 나누어 빌드함.
 
-결과적으로 기존 1000s 이상 걸리는 빌드를 600s -> 400s ->  < 3s 으로 단축함.
+결과적으로 기존 1000s 이상 걸리는 빌드를 600s -> 400s -> < 3s 으로 단축함.
 
 ![poster](../falcon-dockerfile.png)
 
+```bash
+sudo docker build -t falcon-base-torch-12.1-pub-base -f dockerfile_falcon-base .
 
+sudo docker build -t falcon-pub -f dockerfile_falcon-pub .
 
-
-
-
-
-
-
-
-
-sudo docker build -t falcon-base-torch-12.1-pub-base -f dockerfile_falcon-base . && sudo docker build -t falcon-pub -f dockerfile_falcon-pub . && sudo docker run -e NVIDIA_VISIBLE_DEVICES=all -e NVIDIA_DRIVER_CAPABILITIES=all --net=host --env="DISPLAY" --device=/dev/snd:/dev/snd --device=/dev/video0:/dev/video0 --device=/dev/video1:/dev/video1 --device=/dev/media0:/dev/media0 -i -t -v /etc/localtime:/etc/localtime:ro -v /usr/lib:/usr/lib --gpus=all --replace --name=falcon-pub-tset localhost/falcon-pub
-
-
-
-
-
-
+sudo docker run -e NVIDIA_VISIBLE_DEVICES=all -e NVIDIA_DRIVER_CAPABILITIES=all --net=host --env="DISPLAY" --device=/dev/snd:/dev/snd --device=/dev/video0:/dev/video0 --device=/dev/video1:/dev/video1 --device=/dev/media0:/dev/media0 -i -t -v /etc/localtime:/etc/localtime:ro -v /usr/lib:/usr/lib --gpus=all --replace --name=falcon-pub-tset localhost/falcon-pub
+```
 
 # Unidepth
 
@@ -43,10 +32,10 @@ sudo docker build -t falcon-base-torch-12.1-pub-base -f dockerfile_falcon-base .
 
 If you find any bug in the code, please report to Luigi Piccinelli (lpiccinelli@ethz.ch)
 
-
 ## Citation
 
 If you find our work useful in your research please consider citing our publication:
+
 ```bibtex
 @inproceedings{piccinelli2024unidepth,
     title     = {{U}ni{D}epth: Universal Monocular Metric Depth Estimation},
@@ -56,11 +45,9 @@ If you find our work useful in your research please consider citing our publicat
 }
 ```
 
-
 ## License
 
 This software is released under Creatives Common BY-NC 4.0 license. You can view a license summary [here](LICENSE).
-
 
 ## Acknowledgement
 
