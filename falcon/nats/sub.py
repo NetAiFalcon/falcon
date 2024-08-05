@@ -1,9 +1,13 @@
+from kafka import KafkaProducer
 import nats
 import json
 import numpy as np
 
 async def nats_connect():
     return await nats.connect("nats://210.125.85.31:31773")
+
+async def kafka_producer():
+    return KafkaProducer(bootstrap_servers="10.80.0.3:9094",  value_serializer=lambda v: json.dumps(v).encode('utf-8'))
 
 def group_and_average_coordinates(coords):
     n = len(coords)
@@ -27,15 +31,27 @@ def group_and_average_coordinates(coords):
 
     return new_coords
 
+
 async def main():
     try:
         nc = await nats_connect()
+        print("Nats connected")
         sub = await nc.subscribe("Falcon.ternal.Group.A")
+        print("Nats subcribed")
     except Exception as e:
         print(f"Failed to connect to NATS server: {e}")
         return
 
+    try:
+        producer = await kafka_producer()
+        print("Kafka broker connected")
+    except Exception as e:
+        print(f"Failed to connect to Kafka broker: {e}")
+        return
+
     result = []
+    topic = "falcon-xy"
+
     while True:
         try:
             msg = await sub.next_msg()
@@ -48,7 +64,16 @@ async def main():
             if len(result) >= 10:
                 coordinate = group_and_average_coordinates(result)
                 print("Grouped and averaged coordinates:", coordinate)
-                result = []
+                
+                # kafka-broker로 좌표 데이터 전송
+                for coord in coordinate:
+                    coord_json = {"x": coord[0], "y": coord[1]}
+                    
+                    producer.send(topic, value=coord_json)
+                    print(f"sent: {coord_json}")
+                producer.flush()
+
+                result = [] # refresh
         except:
             pass
 
