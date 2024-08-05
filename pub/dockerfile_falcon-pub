@@ -1,4 +1,4 @@
-FROM localhost/falcon-pub-demo-base:latest
+FROM minjuncho/falcon-pub-base:latest
 
 RUN pip install -e .
 
