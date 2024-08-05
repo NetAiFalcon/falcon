@@ -1,14 +1,31 @@
-pub code.
+## Infra.
+
+![poster](../infra_now.png)
+
+<details>
+<summary>Previous</summary>
+<div markdown="1">
+
+![poster](../infra_previous.png)
+
+</div>
+</details>
+
+## pub
 
 python3 main.py --tag_id {int}
+
+## Sub
+
+NATS를 경유해서 값을 받고, DT로 전달 ( kafka )
+
+병렬 데이터 저장 등 담당 예정
 
 ## Dockerfile
 
 한 번에 도커파일을 빌드할 경우 1000초 이상의 시간이 소요되기 때문에
 
 falcon-base
-
-falcon-pub-base
 
 falcon-pub
 
@@ -18,21 +35,31 @@ falcon-pub
 
 ![poster](../falcon-dockerfile.png)
 
+### Dockerfile build
+
 ```bash
 sudo docker build -t falcon-base-torch-12.1-pub-base -f dockerfile_falcon-base .
+```
 
+```bash
 sudo docker build -t falcon-pub -f dockerfile_falcon-pub .
+```
 
+### Docker run
+
+```bash
 sudo docker run -e NVIDIA_VISIBLE_DEVICES=all -e NVIDIA_DRIVER_CAPABILITIES=all --net=host --env="DISPLAY" --device=/dev/snd:/dev/snd --device=/dev/video0:/dev/video0 --device=/dev/video1:/dev/video1 --device=/dev/media0:/dev/media0 -i -t -v /etc/localtime:/etc/localtime:ro -v /usr/lib:/usr/lib --gpus=all --replace --name=falcon-pub-tset localhost/falcon-pub
 ```
 
-# Unidepth
+# AI Refer.
 
-## Contributions
+## Unidepth
+
+### Contributions
 
 If you find any bug in the code, please report to Luigi Piccinelli (lpiccinelli@ethz.ch)
 
-## Citation
+### Citation
 
 If you find our work useful in your research please consider citing our publication:
 
@@ -45,11 +72,11 @@ If you find our work useful in your research please consider citing our publicat
 }
 ```
 
-## License
+### License
 
 This software is released under Creatives Common BY-NC 4.0 license. You can view a license summary [here](LICENSE).
 
-## Acknowledgement
+### Acknowledgement
 
 We would like to express our gratitude to [@niels](https://huggingface.co/nielsr) for helping intergrating UniDepth in HuggingFace.
 
