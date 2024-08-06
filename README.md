@@ -39,6 +39,8 @@ python3 main.py --tag_id {int}
 NATS를 경유해서 값을 받고, kafka를 이용해 토픽을 전달
 (falcon은 NATS 중심의 메세지큐를 사용하지만 MobileX 및 Digital Twin은 kafka를 사용하기 때문.)
 
+현재는 미들웨어 처럼 작동하지만, 후에는 그룹장이 sub일을 맡고, 정제된 데이터를 한 번더 정제하는 최종 타워가 있을 것임. (previous work falcon pdf/ppt 참고)
+
 ## Dockerfile
 
 한 번에 도커파일을 빌드할 경우 1000초 이상의 시간이 소요되기 때문에
