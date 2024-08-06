@@ -21,9 +21,8 @@ python3 main.py --tag_id {int}
 
 ## Sub
 
-NATS를 경유해서 값을 받고, DT로 전달 ( kafka )
-
-병렬 데이터 저장 등 담당 예정
+NATS를 경유해서 값을 받고, kafka를 이용해 토픽을 전달
+(falcon은 NATS 중심의 메세지큐를 사용하지만 MobileX 및 Digital Twin은 kafka를 사용하기 때문.)
 
 ## Dockerfile
 
