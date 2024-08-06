@@ -54,7 +54,7 @@ jobs:
         env:
           IMAGE_TAG: ${{ github.run_number }}
         run: |
-          sed -i 's|image:.*falcon-sub-prod.*|image: falcon-suv-prod:${{ env.IMAGE_TAG }}|' service/sub/values.yaml
+          sed -i 's|image:.*falcon-sub-prod.*|image: falcon-sub-prod:${{ env.IMAGE_TAG }}|' service/sub/sub.yaml
 
       - name: commit and push
         run: |
