@@ -68,7 +68,7 @@ sudo docker build -t falcon-pub -f dockerfile_falcon-pub .
 ### Docker run
 
 ```bash
-sudo docker run -e NVIDIA_VISIBLE_DEVICES=all -e NVIDIA_DRIVER_CAPABILITIES=all --net=host --env="DISPLAY" --device=/dev/snd:/dev/snd --device=/dev/video0:/dev/video0 --device=/dev/video1:/dev/video1 --device=/dev/media0:/dev/media0 -i -t -v /etc/localtime:/etc/localtime:ro -v /usr/lib:/usr/lib --gpus=all --replace --name=falcon-pub-tset localhost/falcon-pub
+sudo docker run -e NVIDIA_VISIBLE_DEVICES=all -e NVIDIA_DRIVER_CAPABILITIES=all --net=host --env="DISPLAY" --device=/dev/snd:/dev/snd --device=/dev/video0:/dev/video0 --device=/dev/video1:/dev/video1 --device=/dev/media0:/dev/media0 -i -t -v /etc/localtime:/etc/localtime:ro -v /usr/lib:/usr/lib --gpus=all --replace --name=falcon-pub-tset minjuncho/falcon-pub python3 main.py --tag_id {uwb_tag_id}
 ```
 
 # AI Refer.
