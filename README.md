@@ -10,7 +10,7 @@
 
 초기 진행에 관한 자료 링크
 
-[falcon에 관한 초기 아이디어](https://github.com/NetAiFalcon/falcon/tree/nats/initial_meterial)
+[falcon에 관한 초기 아이디어](https://github.com/NetAiFalcon/falcon/tree/master/initial_meterial)
 
 </div>
 </details>
