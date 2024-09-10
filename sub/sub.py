@@ -3,11 +3,16 @@ import nats
 import json
 import numpy as np
 
+
 async def nats_connect():
     return await nats.connect("nats://210.125.85.31:31773")
 
+
 async def kafka_producer():
     return KafkaProducer(bootstrap_servers="10.80.0.3:9094",  value_serializer=lambda v: json.dumps(v).encode('utf-8'))
+
+# 좌표간 거리 5m 이하면, 해당 좌표값들 평균내서 하나의 object로 간주
+
 
 def group_and_average_coordinates(coords):
     n = len(coords)
@@ -33,6 +38,7 @@ def group_and_average_coordinates(coords):
 
 
 async def main():
+    # Nats 연결
     try:
         nc = await nats_connect()
         print("Nats connected")
@@ -42,6 +48,7 @@ async def main():
         print(f"Failed to connect to NATS server: {e}")
         return
 
+    # kafka 연결
     try:
         producer = await kafka_producer()
         print("Kafka broker connected")
@@ -50,7 +57,7 @@ async def main():
         return
 
     result = []
-    topic = "falcon-xy"
+    topic = "falcon-xy"  # kafka topic
 
     while True:
         try:
@@ -64,16 +71,16 @@ async def main():
             if len(result) >= 10:
                 coordinate = group_and_average_coordinates(result)
                 print("Grouped and averaged coordinates:", coordinate)
-                
+
                 # kafka-broker로 좌표 데이터 전송
                 for coord in coordinate:
                     coord_json = {"x": coord[0], "y": coord[1]}
-                    
+
                     producer.send(topic, value=coord_json)
                     print(f"sent: {coord_json}")
                 producer.flush()
 
-                result = [] # refresh
+                result = []  # refresh
         except:
             pass
 
