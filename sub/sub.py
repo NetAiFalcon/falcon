@@ -5,7 +5,8 @@ import numpy as np
 
 
 async def nats_connect():
-    return await nats.connect("nats://210.125.85.31:31773")
+    # return await nats.connect("nats://210.125.85.31:31773")
+    return await nats.connect("nats://falcon-nats-svc:4222")
 
 
 async def kafka_producer():
