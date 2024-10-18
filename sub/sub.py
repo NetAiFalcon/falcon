@@ -1,3 +1,4 @@
+import os
 from kafka import KafkaProducer
 import nats
 import json
@@ -5,7 +6,9 @@ import numpy as np
 
 
 async def nats_connect():
-    return await nats.connect("nats://210.125.85.31:31773")
+    nats_server = os.getenv('NATS_SERVER', '10.48.24.73')
+    nats_port = os.getenv('NATS_PORT', '30022')
+    return await nats.connect(f"nats://{nats_server}:{nats_port}")
 
 
 async def kafka_producer():

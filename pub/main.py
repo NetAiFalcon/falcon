@@ -1,3 +1,4 @@
+import os
 import asyncio
 import cv2
 import nats
@@ -47,11 +48,12 @@ print(f"depth model load time: {end_point_unidepth - end_point_yolo:.5f} sec")
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model_uni = model_uni.to(device)
 
-# NATS 서버에 연결
 
-
+# NATS 서버에 연결 (환경 변수 사용)
 async def connect_to_nats():
-    return await nats.connect("nats://210.125.85.31:31773")
+    nats_server = os.getenv('NATS_SERVER', 'localhost')
+    nats_port = os.getenv('NATS_PORT', '4222')
+    return await nats.connect(f"nats://{nats_server}:{nats_port}")
 
 # Depth 값을 가져오는 함수
 
@@ -101,6 +103,7 @@ async def capture_and_send_video(tag_id, subject):
         # current frame이 찍힌 시간
         time_cap = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
         # tag_id의 uwb 센서의 현재 좌표
+        # FIXME: RLTS 서버로 연결해주기.
         uwb = str(requests.get('http://210.125.85.31:31008/uwb/' +
                   str(tag_id)).text)[1:-1].split("_")
 
