@@ -27,7 +27,7 @@ metadata:
 spec:
   selector:
     app: falcon-nats
-  type: ClusterIP
+  type: LoadBalancer # NodePort에서 LoadBalancer로 변경
   ports:
     - protocol: TCP
       port: 4222
