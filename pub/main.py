@@ -55,11 +55,9 @@ async def connect_to_nats():
     nats_port = os.getenv('NATS_PORT', '4222')
     return await nats.connect(f"nats://{nats_server}:{nats_port}")
 
-# Depth 값을 가져오는 함수
 
-
-def get_depth_value(frame, cx, cy):
-    # 임시 파일에 프레임을 저장
+# Unidepth로 Camera frame의 이차원 좌표에 따른 Depth 추정
+def pred_depth_frame(frame):
     temp_filename = 'temp_frame.jpg'
     cv2.imwrite(temp_filename, frame)
 
@@ -78,14 +76,10 @@ def get_depth_value(frame, cx, cy):
     # get GT and pred
     depth_pred = predictions["depth"].squeeze().cpu().numpy()
 
-    # 특정 좌표(x, y)의 깊이 출력
-    depth_at_point = depth_pred[cy, cx] - 1
-    # print(f"Depth at ({cx}, {cy}): {depth_at_point:.4f} meters")
-    return float(depth_at_point)
+    return depth_pred
+
 
 # 카메라 스트림 캡처 및 NATS 전송
-
-
 async def capture_and_send_video(tag_id, subject):
     nc = await connect_to_nats()
     cap = cv2.VideoCapture(0)
@@ -102,8 +96,9 @@ async def capture_and_send_video(tag_id, subject):
 
         # current frame이 찍힌 시간
         time_cap = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+
         # tag_id의 uwb 센서의 현재 좌표
-        # FIXME: RLTS 서버로 연결해주기.
+        # TODO: uwb 정보 가져오기 위한 POD 재배포하기
         uwb = str(requests.get('http://210.125.85.31:31008/uwb/' +
                   str(tag_id)).text)[1:-1].split("_")
 
@@ -113,6 +108,10 @@ async def capture_and_send_video(tag_id, subject):
             centers = []
             depths = []
             x_position = uwb[1]
+
+            # Camera frame에 대한 Depth 추정
+            depth_pred = pred_depth_frame(frame)
+
             for result in results.xyxy[0]:
                 # 0번 클래스가 'person'인 경우 # TODO: 사람만 detection하는 pretrained-YOLO는 없나?
                 if int(result[5]) == 0:
@@ -122,12 +121,10 @@ async def capture_and_send_video(tag_id, subject):
                     cx = (xmin + xmax) / 2
                     cy = (ymin + ymax) / 2
                     centers.append((cx.item(), cy.item()))
-                    # print(uwb.text) # uwb text
 
-                    # 깊이 값 계산
-                    # TODO: Depth 추정 후 publish 과정을 중앙처리방식으로 전환하거나, multi-threading으로 수정해보기
-                    depth = get_depth_value(
-                        frame, int(cx.item()), int(cy.item()))
+                    # Yolo frame에 대한 depth 가져오기
+                    depth = float(
+                        depth_pred[int(cx.item()), int(cy.item())] - 1)
                     depths.append(depth)
 
             if detected:
