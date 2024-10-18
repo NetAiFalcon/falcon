@@ -1,52 +1,52 @@
 import os
+import datetime
 import asyncio
+import json
+import base64
+import requests
+import time
+import math
+import argparse
+
 import cv2
 import nats
 import torch
 import numpy as np
-import json
-import base64
-import time
-import subprocess
-
-# time check
-import math
-import time
-
-import requests
-
-
 from PIL import Image
-import argparse
 
-from unidepth.models import UniDepthV1, UniDepthV2
-from unidepth.utils import colorize, image_grid
+from unidepth.models import UniDepthV2
 
-import datetime
+#############################################
+######### Set Up for Yolo, Unidepth #########
+#############################################
 
-
-start = time.time()
+start_point_yolo = time.time()
 math.factorial(100000)
 
 # YOLO 모델 로드 from Pytorch Hub
 # YOLO는 따로 GPU 연산 안함: v5는 경량화 모델, uniDepth 연산에 영향 고려
-# TODO: YOLO에 GPU 연결 시 YOLO와 uniDepth 연산 속도 차이 비교
-# TODO: YOLO 연산 속도에 유의미한 차이를 보일 경우, 추후 uniDepth를 중앙처리방식으로 전환하면 YOLO에 GPU 연결 고려
 model = torch.hub.load('ultralytics/yolov5', 'yolov5s')
 
-# time check
+# Time check
 end_point_yolo = time.time()
-print(f"YOLO model load time: {end_point_yolo - start:.5f} sec")
+print(f"YOLO model load time: {end_point_yolo - start_point_yolo:.5f} sec")
 
 # UniDepthV2 모델 로드
 name_uni = "unidepth-v2-vitl14"
 model_uni = UniDepthV2.from_pretrained(f"lpiccinelli/{name_uni}")
-# time check
+
+# Time check
 end_point_unidepth = time.time()
 print(f"depth model load time: {end_point_unidepth - end_point_yolo:.5f} sec")
-# CUDA 연결
+
+# CUDA 연결 for Unidepth Model
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model_uni = model_uni.to(device)
+
+
+#############################################
+################ Main Logics ################
+#############################################
 
 
 # NATS 서버에 연결 (환경 변수 사용)
@@ -85,8 +85,7 @@ async def capture_and_send_video(tag_id, subject):
     cap = cv2.VideoCapture(0)
 
     while True:
-
-        # end_point_capture_st = time.time() time check
+        capture_start = time.time()
 
         # ret: boolean
         # frame: current frame (image)
@@ -109,11 +108,12 @@ async def capture_and_send_video(tag_id, subject):
             depths = []
             x_position = uwb[1]
 
-            # Camera frame에 대한 Depth 추정
+            # Camera frame에 대한 Depth 추정 (UniDepth)
             depth_pred = pred_depth_frame(frame)
 
+            # 모든 Yolo frames에 대해
             for result in results.xyxy[0]:
-                # 0번 클래스가 'person'인 경우 # TODO: 사람만 detection하는 pretrained-YOLO는 없나?
+                # 0번 클래스가 'person'인 경우
                 if int(result[5]) == 0:
                     detected = True
                     # 바운딩 박스 중심 좌표 계산
@@ -127,6 +127,7 @@ async def capture_and_send_video(tag_id, subject):
                         depth_pred[int(cx.item()), int(cy.item())] - 1)
                     depths.append(depth)
 
+            # 'Person' frame이 적어도 1개 이상 있었을 경우
             if detected:
 
                 # 간단 보정
@@ -167,9 +168,10 @@ async def capture_and_send_video(tag_id, subject):
 
         await asyncio.sleep(0.2)  # 200ms 딜레이 안하면 초당 4장, 100ms 딜레이는 초당 2장
 
-        # time check
-        # end_point_capture_done = time.time()
-        # print(f"Funtion run time {end_point_capture_done - end_point_capture_st:.5f} sec")
+        capture_end = time.time()
+
+        print(
+            f"Funtion run time {capture_end - capture_start:.5f} sec")
 
     cap.release()
     await nc.close()
