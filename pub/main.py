@@ -138,53 +138,53 @@ async def capture_and_send_video(tag_id, subject, uwb, direction):
                     # Yolo frame에 대한 depth 가져오기
                     depth = float(
                         depth_pred[int(cx.item()), int(cy.item())] - 1)
-
-                    x_pos, y_pos = [0, 0]
+                    x_pos = 0
+                    y_pos = 0
 
                     # 좌표 간단 보정
                     # 해상도 20 = 좌표 0.125라고 가정
                     if direction == 'x+':
                         x_pos = float(uwb_x + depth)
                         y_pos = float(uwb_y)
-                        if cx < 320:
-                            gap = 320 - cx
+                        if cx.item() < 320:
+                            gap = 320 - cx.item()
                             adjust = (gap / 20) * 0.125
                             y_pos -= adjust
                         else:
-                            gap = cx - 320
+                            gap = cx.item() - 320
                             adjust = (gap / 20) * 0.125
                             y_pos += adjust
                     elif direction == 'x-':
                         x_pos = float(uwb_x - depth)
                         y_pos = float(uwb_y)
-                        if cx < 320:
-                            gap = 320 - cx
+                        if cx.item() < 320:
+                            gap = 320 - cx.item()
                             adjust = (gap / 20) * 0.125
                             y_pos += adjust
                         else:
-                            gap = cx - 320
+                            gap = cx.item() - 320
                             adjust = (gap / 20) * 0.125
                             y_pos -= adjust
                     elif direction == 'y+':
                         y_pos = float(uwb_y + depth)
                         x_pos = float(uwb_x)
-                        if cx < 320:
-                            gap = 320 - cx
+                        if cx.item() < 320:
+                            gap = 320 - cx.item()
                             adjust = (gap / 20) * 0.125
                             x_pos += adjust
                         else:
-                            gap = cx - 320
+                            gap = cx.item() - 320
                             adjust = (gap / 20) * 0.125
                             x_pos -= adjust
                     else:  # y-
                         y_pos = float(uwb_y - depth)
                         x_pos = float(uwb_x)
-                        if cx < 320:
-                            gap = 320 - cx
+                        if cx.item() < 320:
+                            gap = 320 - cx.item()
                             adjust = (gap / 20) * 0.125
                             x_pos -= adjust
                         else:
-                            gap = cx - 320
+                            gap = cx.item() - 320
                             adjust = (gap / 20) * 0.125
                             x_pos += adjust
 
