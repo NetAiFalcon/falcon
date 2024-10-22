@@ -188,6 +188,9 @@ async def capture_and_send_video(tag_id, subject, uwb, direction):
                             adjust = (gap / 20) * 0.125
                             x_pos += adjust
 
+                    x_pos = float(x_pos)  # tensor 값을 float로 변환
+                    y_pos = float(y_pos)
+
                     # JPEG로 인코딩하여 손실 압축 적용 (품질 80%)
                     encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 80]
                     _, buffer = cv2.imencode('.jpg', frame, encode_param)
