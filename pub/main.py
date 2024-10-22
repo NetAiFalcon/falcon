@@ -56,7 +56,28 @@ async def connect_to_nats():
     return await nats.connect(f"nats://{nats_server}:{nats_port}")
 
 
-# Unidepth로 Camera frame의 이차원 좌표에 따른 Depth 추정
+# # Unidepth로 Camera frame의 이차원 좌표에 따른 Depth 추정
+# def pred_depth_frame(frame):
+#     temp_filename = 'temp_frame.jpg'
+#     cv2.imwrite(temp_filename, frame)
+
+#     rgb = np.array(Image.open(temp_filename))
+
+#     rgb_torch = torch.from_numpy(rgb).permute(
+#         2, 0, 1).unsqueeze(0).float() / 255.0
+#     intrinsics_torch = torch.from_numpy(np.load("assets/demo/intrinsics.npy"))
+
+#     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+#     rgb_torch = rgb_torch.to(device)
+#     intrinsics_torch = intrinsics_torch.to(device)
+#     # predict
+#     predictions = model_uni.infer(rgb_torch, intrinsics_torch)
+
+#     # get GT and pred
+#     depth_pred = predictions["depth"].squeeze().cpu().numpy()
+
+#     return depth_pred
+
 def pred_depth_frame(frame):
     temp_filename = 'temp_frame.jpg'
     cv2.imwrite(temp_filename, frame)
@@ -70,16 +91,30 @@ def pred_depth_frame(frame):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     rgb_torch = rgb_torch.to(device)
     intrinsics_torch = intrinsics_torch.to(device)
-    # predict
-    predictions = model_uni.infer(rgb_torch, intrinsics_torch)
 
-    # get GT and pred
+    # predict
+    with torch.no_grad():  # 추가
+        predictions = model_uni.infer(rgb_torch, intrinsics_torch)
+
+    # tensor를 numpy로 변환하고 device에서 분리
     depth_pred = predictions["depth"].squeeze().cpu().numpy()
+
+    # numpy array가 맞는지 확인
+    assert isinstance(
+        depth_pred, np.ndarray), f"depth_pred is not numpy array: {type(depth_pred)}"
 
     return depth_pred
 
 
+def print_type_info(var_name, var):
+    print(f"{var_name} type: {type(var)}")
+    if torch.is_tensor(var):
+        print(f"{var_name} device: {var.device}")
+        print(f"{var_name} requires_grad: {var.requires_grad}")
+
 # 카메라 스트림 캡처 및 NATS 전송
+
+
 async def capture_and_send_video(tag_id, subject, uwb, direction):
     nc = await connect_to_nats()
     cap = cv2.VideoCapture(0)
@@ -137,7 +172,7 @@ async def capture_and_send_video(tag_id, subject, uwb, direction):
 
                     # Yolo frame에 대한 depth 가져오기
                     depth = float(
-                        depth_pred[int(cx.item()), int(cy.item())] - 1)
+                        depth_pred[int(cy.item()), int(cx.item())] - 1)
                     x_pos = 0
                     y_pos = 0
 
@@ -188,12 +223,16 @@ async def capture_and_send_video(tag_id, subject, uwb, direction):
                             adjust = (gap / 20) * 0.125
                             x_pos += adjust
 
-                    x_pos = float(x_pos)  # tensor 값을 float로 변환
-                    y_pos = float(y_pos)
+                    x_pos = float(
+                        x_pos.item() if torch.is_tensor(x_pos) else x_pos)
+                    y_pos = float(
+                        y_pos.item() if torch.is_tensor(y_pos) else y_pos)
 
                     # JPEG로 인코딩하여 손실 압축 적용 (품질 80%)
                     encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 80]
                     _, buffer = cv2.imencode('.jpg', frame, encode_param)
+
+                    print_type_info('x_pos', x_pos)
 
                     # 파일명 생성
                     filename = f"frame_{int(time.time())}.jpg"
@@ -201,7 +240,6 @@ async def capture_and_send_video(tag_id, subject, uwb, direction):
                     data = {
                         "filename": filename,
                         "image": base64.b64encode(buffer).decode('utf-8'),
-                        # "tag_id": uwb[4],  # position_17.78_-21.76_tagid_15
                         "position_x": x_pos,
                         "position_y": y_pos,
                         "time": time_cap
@@ -209,8 +247,6 @@ async def capture_and_send_video(tag_id, subject, uwb, direction):
 
                     data_print = {
                         "filename": filename,
-                        # "image": "r4lwEXtvKB95SM1w5Ug9K9I+I8",
-                        # "tag_id": uwb[4],  # position_17.78_-21.76_tagid_15
                         "position_x": x_pos,
                         "position_y": y_pos,
                         "time": time_cap

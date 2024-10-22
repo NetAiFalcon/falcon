@@ -1,11 +1,11 @@
-version: '3.8'
+version: "3.8"
 
 services:
   ubuntu2004_media:
     image: docker.io/minjuncho/falcon-pub
     container_name: ubuntu2004_media
     runtime: nvidia
-    shm_size: '1024m'
+    shm_size: "1024m"
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
       - NVIDIA_DRIVER_CAPABILITIES=all
@@ -20,5 +20,5 @@ services:
       - /etc/localtime:/etc/localtime:ro
       - /home/docker/share:/root/share
     stdin_open: true # -i flag
-    tty: true        # -t flag
+    tty: true # -t flag
     command: python3 main.py --tag_id 16
