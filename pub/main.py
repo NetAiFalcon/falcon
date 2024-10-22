@@ -51,9 +51,12 @@ model_uni = model_uni.to(device)
 
 # NATS 서버에 연결 (환경 변수 사용)
 async def connect_to_nats():
+    print("NATS connecting...")
     nats_server = os.getenv('NATS_SERVER', 'localhost')
     nats_port = os.getenv('NATS_PORT', '4222')
-    return await nats.connect(f"nats://{nats_server}:{nats_port}")
+    ns = await nats.connect(f"nats://{nats_server}:{nats_port}")
+    print("NATS connected")
+    return ns
 
 
 # # Unidepth로 Camera frame의 이차원 좌표에 따른 Depth 추정
@@ -116,7 +119,9 @@ def print_type_info(var_name, var):
 
 
 async def capture_and_send_video(tag_id, subject, uwb, direction):
+
     nc = await connect_to_nats()
+
     cap = cv2.VideoCapture(0)
 
     # 카메라 해상도 640 x 360
@@ -232,7 +237,13 @@ async def capture_and_send_video(tag_id, subject, uwb, direction):
                     encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 80]
                     _, buffer = cv2.imencode('.jpg', frame, encode_param)
 
-                    print_type_info('x_pos', x_pos)
+                    print(f"x_pos type: {type(x_pos)}")
+                    print(f"y_pos type: {type(y_pos)}")
+
+                    if torch.is_tensor(x_pos):
+                        x_pos = float(x_pos.item())
+                    if torch.is_tensor(y_pos):
+                        y_pos = float(y_pos.item())
 
                     # 파일명 생성
                     filename = f"frame_{int(time.time())}.jpg"
