@@ -260,7 +260,7 @@ async def capture_and_send_video(tag_id, subject, uwb, direction):
                 message = json.dumps(data)
                 await nc.publish(subject, message.encode('utf-8'))
 
-        await asyncio.sleep(0.2)  # 200ms 딜레이 안하면 초당 4장, 100ms 딜레이는 초당 2장
+        await asyncio.sleep(0.4)  # 200ms 딜레이 안하면 초당 4장, 100ms 딜레이는 초당 2장
 
         capture_end = time.time()
 
