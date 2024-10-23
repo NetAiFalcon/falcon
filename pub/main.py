@@ -218,9 +218,6 @@ async def capture_and_send_video(tag_id, subject, uwb, direction):
                     encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 80]
                     _, buffer = cv2.imencode('.jpg', frame, encode_param)
 
-                    print(f"x_pos type: {type(x_pos)}")
-                    print(f"y_pos type: {type(y_pos)}")
-
                     if torch.is_tensor(x_pos):
                         x_pos = float(x_pos.item())
                     if torch.is_tensor(y_pos):
