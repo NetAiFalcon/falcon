@@ -250,7 +250,7 @@ async def capture_and_send_video(tag_id, subject, uwb, direction):
 
                 encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 80]
                 _, buffer = cv2.imencode('.jpg', frame, encode_param)
-                filename = f"frame_{int(time.time())}.jpg"
+                filename = f"frame_{int(time.time_ns())}.jpg"
 
                 # JSON 데이터 생성
                 data = {
