@@ -8,20 +8,27 @@ import numpy as np
 async def nats_connect():
     nats_server = os.getenv('NATS_SERVER', '10.48.24.73')
     nats_port = os.getenv('NATS_PORT', '30022')
-    return await nats.connect(f"nats://{nats_server}:{nats_port}")
+
+    print("NATS connecting...")
+    ns = await nats.connect(f"nats://{nats_server}:{nats_port}")
+    print("NATS connected")
+    return ns
 
 
 async def kafka_producer():
     kafka_broker = os.getenv('KAFKA_BROKER', '210.125.85.62')
     broker_port = os.getenv('BROKER_PORT', '9094')
-    return KafkaProducer(bootstrap_servers=f"{kafka_broker}:{broker_port}",  value_serializer=lambda v: json.dumps(v).encode('utf-8'))
+    print("Kafka connecting...")
+    producer = KafkaProducer(
+        bootstrap_servers=f"{kafka_broker}:{broker_port}",  value_serializer=lambda v: json.dumps(v).encode('utf-8'))
+    print("Kafka connected")
+    return producer
 
 
 async def main():
     # Nats 연결
     try:
         nc = await nats_connect()
-        print("Nats connected")
         sub = await nc.subscribe("Falcon.ternal.Group.A")
         print("Nats subcribed")
     except Exception as e:
@@ -31,13 +38,14 @@ async def main():
     # kafka 연결
     try:
         producer = await kafka_producer()
-        print("Kafka broker connected")
     except Exception as e:
         print(f"Failed to connect to Kafka broker: {e}")
         return
 
     # coordinates = []
     topic = "falcon-xy"  # kafka topic
+
+    print("receiving...")
 
     while True:
         try:
