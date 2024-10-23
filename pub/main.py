@@ -59,28 +59,6 @@ async def connect_to_nats():
     return ns
 
 
-# # Unidepth로 Camera frame의 이차원 좌표에 따른 Depth 추정
-# def pred_depth_frame(frame):
-#     temp_filename = 'temp_frame.jpg'
-#     cv2.imwrite(temp_filename, frame)
-
-#     rgb = np.array(Image.open(temp_filename))
-
-#     rgb_torch = torch.from_numpy(rgb).permute(
-#         2, 0, 1).unsqueeze(0).float() / 255.0
-#     intrinsics_torch = torch.from_numpy(np.load("assets/demo/intrinsics.npy"))
-
-#     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-#     rgb_torch = rgb_torch.to(device)
-#     intrinsics_torch = intrinsics_torch.to(device)
-#     # predict
-#     predictions = model_uni.infer(rgb_torch, intrinsics_torch)
-
-#     # get GT and pred
-#     depth_pred = predictions["depth"].squeeze().cpu().numpy()
-
-#     return depth_pred
-
 def pred_depth_frame(frame):
     temp_filename = 'temp_frame.jpg'
     cv2.imwrite(temp_filename, frame)
@@ -151,9 +129,7 @@ async def capture_and_send_video(tag_id, subject, uwb, direction):
 
         results = model(frame)  # YOLO object detection
         if len(results.xyxy[0]) > 0:  # 사람이 감지된 경우
-            # detected = False # 필요 없어짐
-            centers = []
-            # depths = []
+            detected_objects = []
 
             # 모든 Yolo 결과 중 'person' 클래스만 필터링하고 신뢰도 높은 순으로 정렬
             person_detections = [
@@ -233,6 +209,11 @@ async def capture_and_send_video(tag_id, subject, uwb, direction):
                     y_pos = float(
                         y_pos.item() if torch.is_tensor(y_pos) else y_pos)
 
+                    detected_objects.append({
+                        "position_x": x_pos,
+                        "position_y": y_pos
+                    })
+
                     # JPEG로 인코딩하여 손실 압축 적용 (품질 80%)
                     encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 80]
                     _, buffer = cv2.imencode('.jpg', frame, encode_param)
@@ -245,27 +226,42 @@ async def capture_and_send_video(tag_id, subject, uwb, direction):
                     if torch.is_tensor(y_pos):
                         y_pos = float(y_pos.item())
 
-                    # 파일명 생성
-                    filename = f"frame_{int(time.time())}.jpg"
-                    # JSON 데이터 생성
-                    data = {
-                        "filename": filename,
-                        "image": base64.b64encode(buffer).decode('utf-8'),
-                        "position_x": x_pos,
-                        "position_y": y_pos,
-                        "time": time_cap
-                    }
+                    # # 파일명 생성
+                    # filename = f"frame_{int(time.time())}.jpg"
+                    # # JSON 데이터 생성
+                    # data = {
+                    #     "filename": filename,
+                    #     "image": base64.b64encode(buffer).decode('utf-8'),
+                    #     "position_x": x_pos,
+                    #     "position_y": y_pos,
+                    #     "time": time_cap
+                    # }
 
-                    data_print = {
-                        "filename": filename,
-                        "position_x": x_pos,
-                        "position_y": y_pos,
-                        "time": time_cap
-                    }
-                    print(data_print)
-                    message = json.dumps(data)
+                    # data_print = {
+                    #     "filename": filename,
+                    #     "position_x": x_pos,
+                    #     "position_y": y_pos,
+                    #     "time": time_cap
+                    # }
+                    # print(data_print)
+                    # message = json.dumps(data)
 
-                    await nc.publish(subject, message.encode('utf-8'))
+                    # await nc.publish(subject, message.encode('utf-8'))
+
+                encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 80]
+                _, buffer = cv2.imencode('.jpg', frame, encode_param)
+                filename = f"frame_{int(time.time())}.jpg"
+
+                # JSON 데이터 생성
+                data = {
+                    "filename": filename,
+                    "image": base64.b64encode(buffer).decode('utf-8'),
+                    "objects": detected_objects,  # 객체 정보 배열
+                    "time": time_cap
+                }
+
+                message = json.dumps(data)
+                await nc.publish(subject, message.encode('utf-8'))
 
         await asyncio.sleep(0.2)  # 200ms 딜레이 안하면 초당 4장, 100ms 딜레이는 초당 2장
 
