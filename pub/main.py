@@ -52,7 +52,7 @@ model_uni = model_uni.to(device)
 # NATS 서버에 연결 (환경 변수 사용)
 async def connect_to_nats():
     print("NATS connecting...")
-    nats_server = os.getenv('NATS_SERVER', 'localhost')
+    nats_server = os.getenv('NATS_SERVER', '10.48.24.83')
     nats_port = os.getenv('NATS_PORT', '4222')
     ns = await nats.connect(f"nats://{nats_server}:{nats_port}")
     print("NATS connected")
@@ -85,13 +85,6 @@ def pred_depth_frame(frame):
         depth_pred, np.ndarray), f"depth_pred is not numpy array: {type(depth_pred)}"
 
     return depth_pred
-
-
-def print_type_info(var_name, var):
-    print(f"{var_name} type: {type(var)}")
-    if torch.is_tensor(var):
-        print(f"{var_name} device: {var.device}")
-        print(f"{var_name} requires_grad: {var.requires_grad}")
 
 # 카메라 스트림 캡처 및 NATS 전송
 
@@ -223,28 +216,6 @@ async def capture_and_send_video(tag_id, subject, uwb, direction):
                     if torch.is_tensor(y_pos):
                         y_pos = float(y_pos.item())
 
-                    # # 파일명 생성
-                    # filename = f"frame_{int(time.time())}.jpg"
-                    # # JSON 데이터 생성
-                    # data = {
-                    #     "filename": filename,
-                    #     "image": base64.b64encode(buffer).decode('utf-8'),
-                    #     "position_x": x_pos,
-                    #     "position_y": y_pos,
-                    #     "time": time_cap
-                    # }
-
-                    # data_print = {
-                    #     "filename": filename,
-                    #     "position_x": x_pos,
-                    #     "position_y": y_pos,
-                    #     "time": time_cap
-                    # }
-                    # print(data_print)
-                    # message = json.dumps(data)
-
-                    # await nc.publish(subject, message.encode('utf-8'))
-
                 encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 80]
                 _, buffer = cv2.imencode('.jpg', frame, encode_param)
                 filename = f"frame_{int(time.time_ns())}.jpg"
@@ -256,6 +227,11 @@ async def capture_and_send_video(tag_id, subject, uwb, direction):
                     "objects": detected_objects,  # 객체 정보 배열
                     "time": time_cap
                 }
+                print({
+                    "filename": filename,
+                    "objects": detected_objects,
+                    "time": time_cap
+                })
 
                 message = json.dumps(data)
                 await nc.publish(subject, message.encode('utf-8'))
