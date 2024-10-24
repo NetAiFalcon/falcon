@@ -50,9 +50,9 @@ async def main():
     while True:
         try:
             msg = await sub.next_msg()
-            print("received: ")
+
             json_obj = json.loads(msg.data.decode())  # msg.data is in bytes
-            # Ensure coordinates are converted to float
+            print(f"received: {json_obj}")
 
             # demo
             detected_objects = json_obj['objects']
@@ -67,22 +67,6 @@ async def main():
 
             producer.send(topic, value=kafka_msg_data)
             producer.flush()
-
-            # position_x = float(json_obj['position_x'])
-            # position_y = float(json_obj['position_y'])
-            # coordinates.append([position_x, position_y])
-            # if len(result) >= 10:
-            #     print("Grouped and averaged coordinates:", coordinates)
-
-            #     # kafka-broker로 좌표 데이터 전송
-            #     for coord in coordinates:
-            #         coord_json = {"x": coord[0], "y": coord[1]}
-
-            #         producer.send(topic, value=coord_json)
-            #         print(f"sent: {coord_json}")
-            #     producer.flush()
-
-            #     result = []  # refresh
         except:
             pass
 
