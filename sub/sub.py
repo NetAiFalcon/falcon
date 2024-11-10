@@ -6,32 +6,38 @@ import numpy as np
 
 
 async def nats_connect():
+    nats = NATS()
     nats_server = os.getenv('NATS_SERVER', None)
     nats_port = os.getenv('NATS_PORT', None)
 
-    if nats_port == None or nats_server == None:
+    if nats_port is None or nats_server is None:
         print("Couldn't get NATS address info.")
         raise ValueError("Couldn't get NATS address info.")
 
     nats_server_addr = f"nats://{nats_server}:{nats_port}"
-
     print(f"NATS connecting to {nats_server_addr}...")
-    ns = await NATS.connect(servers=[nats_server_addr])
-    print("NATS connected")
-    return ns
+
+    try:
+        await nats.connect(servers=[nats_server_addr])
+        print("NATS connected")
+        return nats
+    except Exception as e:
+        print(f"Failed to connect to NATS server: {e}")
+        raise
 
 
 async def kafka_producer():
     kafka_broker = os.getenv('KAFKA_BROKER', None)
     broker_port = os.getenv('BROKER_PORT', None)
 
-    if kafka_broker == None or broker_port == None:
+    if kafka_broker is None or broker_port is None:
         print("Couldn't get Kafka broker address info.")
         raise ValueError("Couldn't get Kafka broker address info.")
 
     print("Kafka connecting...")
     producer = KafkaProducer(
-        bootstrap_servers=f"{kafka_broker}:{broker_port}",  value_serializer=lambda v: json.dumps(v).encode('utf-8'))
+        bootstrap_servers=f"{kafka_broker}:{broker_port}",  
+        value_serializer=lambda v: json.dumps(v).encode('utf-8'))
     print("Kafka connected")
     return producer
 

@@ -6,7 +6,7 @@ COPY . /app
 
 RUN pip install --no-cache-dir -r requirements.txt
 
-ENV NATS_SERVER ""
-ENV NATS_PORT ""
+ENV NATS_SERVER=""
+ENV NATS_PORT=""
 
 CMD ["python", "sub.py"]
